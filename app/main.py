@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="app/templates")
 # -------------------------
 USERS = [
     "Athanasiou", "Korogiannakis", "Kokoroskos", "Petris",
-    "Tzedakis", "Lampos", "Koumentis", "Nikolaides",
+    "Tzedakis", "Lampos", "Koumentis", "Nikolaidis",
     "Fostiropoulou", "Guest1", "Guest2"
 ]
 
@@ -26,7 +26,7 @@ LOCATIONS = {
     "Kaltezon": 2
 }
 
-GROUP_1 = {"Kokoroskos", "Nikolaides", "Fostiropoulou", "Tzedakis"}
+GROUP_1 = {"Kokoroskos", "Nikolaidis", "Fostiropoulou", "Tzedakis","Guest1", "Guest2"}
 GROUP_1_ALLOWED_LOCATIONS = {"Office", "Amarousiou-Chalandriou"}
 
 CEO_NAME = "Athanasiou"
