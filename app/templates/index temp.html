@@ -265,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const locationSelect = document.querySelector('select[name="location"]');
 
     userSelect.addEventListener("change", () => {
-        const user = userSelect.value.trim();
+        const user = userSelect.value;
 
         [...locationSelect.options].forEach(opt => {
             if (!opt.value) return;
