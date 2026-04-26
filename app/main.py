@@ -210,39 +210,7 @@ def cancel_booking(booking_id: int = Form(...)):
         "/?message=Η κράτηση ακυρώθηκε",
         status_code=303
     )
-from fastapi.responses import Response
-import csv
-from io import StringIO
 
-
-@app.get("/debug/export")
-def export_csv():
-    with SessionLocal() as db:
-        rows = db.query(ParkingEntry).all()
-
-        output = StringIO()
-        writer = csv.writer(output)
-
-        # Header
-        writer.writerow(["id", "user", "date", "type", "location"])
-
-        # Data
-        for r in rows:
-            writer.writerow([
-                r.id,
-                r.user_name,
-                r.entry_date,
-                r.entry_type,
-                r.location
-            ])
-
-        return Response(
-            content=output.getvalue(),
-            media_type="text/csv",
-            headers={
-                "Content-Disposition": "attachment; filename=parking_backup.csv"
-            }
-        )
  -------------------------
 # DEBUG INFO (TEMP)
 # -------------------------
