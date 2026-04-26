@@ -243,3 +243,16 @@ def export_csv():
                 "Content-Disposition": "attachment; filename=parking_backup.csv"
             }
         )
+ -------------------------
+# DEBUG INFO (TEMP)
+# -------------------------
+@app.get("/debug/info")
+def debug_info():
+    import os
+    return {
+        "cwd": os.getcwd(),
+        "files": os.listdir("."),
+        "db_exists": os.path.exists("parking.db"),
+        "db_size_bytes": os.path.getsize("parking.db") if os.path.exists("parking.db") else 0,
+        "DATABASE_URL": os.getenv("DATABASE_URL")
+    }
