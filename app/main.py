@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
@@ -211,17 +210,3 @@ def cancel_booking(booking_id: int = Form(...)):
         "/?message=Η κράτηση ακυρώθηκε",
         status_code=303
     )
-
- -------------------------
-# DEBUG INFO (TEMP)
-# -------------------------
-@app.get("/debug/info")
-def debug_info():
-    import os
-    return {
-        "cwd": os.getcwd(),
-        "files": os.listdir("."),
-        "db_exists": os.path.exists("parking.db"),
-        "db_size_bytes": os.path.getsize("parking.db") if os.path.exists("parking.db") else 0,
-        "DATABASE_URL": os.getenv("DATABASE_URL")
-    }
