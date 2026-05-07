@@ -25,11 +25,11 @@ const AREA_INFO = {
   },
   kaltezon: {
     directions: "Restricted parking area. Use only if you are one of the allowed employees and park in the assigned KA slot.",
-    mapUrl: "https://maps.google.com/?q=Kaltezon",
+    mapUrl: "https://maps.app.goo.gl/FrMgh3seE1vBC4LN9",
   },
   "amarousiou-chalandriou": {
     directions: "Use the Amarousiou-Chalandriou parking entrance and park only in the assigned AC slot.",
-    mapUrl: "https://maps.google.com/?q=Amarousiou%20Chalandriou",
+    mapUrl: "https://maps.app.goo.gl/ECoFioUCfCzmqLhe7",
   },
 };
 
