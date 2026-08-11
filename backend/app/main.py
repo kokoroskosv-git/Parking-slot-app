@@ -124,34 +124,47 @@ def seed_slots(db: Session):
 
 
 def ensure_ceo_prebooks(db: Session):
+    """Create each default CEO prebooking once.
+
+    A cancelled prebooking remains as a historical database row. Checking for
+    any existing prebook record, rather than only an active one, prevents the
+    system from recreating EO-1 immediately after a user intentionally releases
+    it for that day.
+    """
+    slot = db.scalar(select(ParkingSlot).where(ParkingSlot.slot_code == "EO-1"))
+    if not slot:
+        return
+
     for booking_day in allowed_booking_dates():
         if booking_day > CEO_PREBOOK_UNTIL:
             continue
-        slot = db.scalar(select(ParkingSlot).where(ParkingSlot.slot_code == "EO-1"))
-        if not slot:
-            continue
-        exists = db.scalar(select(ParkingBooking).where(
+
+        prebook_record = db.scalar(select(ParkingBooking).where(
             ParkingBooking.booking_date == booking_day,
             ParkingBooking.person_name == CEO_NAME,
-            ParkingBooking.status == "active",
+            ParkingBooking.booking_type == "prebook",
         ))
         slot_taken = db.scalar(select(ParkingBooking).where(
             ParkingBooking.booking_date == booking_day,
             ParkingBooking.slot_id == slot.id,
             ParkingBooking.status == "active",
         ))
-        if not exists and not slot_taken:
-            booking = ParkingBooking(
-                booking_date=booking_day,
-                slot_id=slot.id,
-                person_name=CEO_NAME,
-                person_type="employee",
-                booking_type="prebook",
-                status="active",
-            )
-            db.add(booking)
-            db.flush()
-            add_history(db, event_type="PREBOOKED", result="SUCCESS", booking=booking, requested_by="system")
+
+        if prebook_record or slot_taken:
+            continue
+
+        booking = ParkingBooking(
+            booking_date=booking_day,
+            slot_id=slot.id,
+            person_name=CEO_NAME,
+            person_type="employee",
+            booking_type="prebook",
+            status="active",
+        )
+        db.add(booking)
+        db.flush()
+        add_history(db, event_type="PREBOOKED", result="SUCCESS", booking=booking, requested_by="system")
+
     db.commit()
 
 
@@ -179,7 +192,7 @@ def config():
             "A person can have only one active booking per day.",
             "Guests cannot book Kaltezon.",
             "Only VIP employees can book Kaltezon.",
-            "AthanasiouL is pre-booked in EO-1 until 2026-12-31.",
+            "AthanasiouL is pre-booked in EO-1 until 2026-12-31, but the slot can be released when it is not needed.",
         ],
     }
 
@@ -308,15 +321,16 @@ def cancel_booking(payload: CancelBookingIn, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Active booking was not found.")
 
     is_guest_booking = booking.person_type == "guest"
+    is_prebook = booking.booking_type == "prebook"
     is_owner = payload.requested_by == booking.person_name
     is_admin = payload.requested_by == "admin"
 
-    if not (is_guest_booking or is_owner or is_admin):
+    if not (is_prebook or is_guest_booking or is_owner or is_admin):
         add_history(
             db,
             event_type="FAILED",
             result="REJECTED",
-            reason="Only the booking owner or admin can cancel this booking",
+            reason="Only a prebooking, guest booking, booking owner, or admin can cancel this booking",
             booking=booking,
             requested_by=payload.requested_by,
         )
@@ -328,7 +342,13 @@ def cancel_booking(payload: CancelBookingIn, db: Session = Depends(get_db)):
     booking.cancelled_by = payload.requested_by
     add_history(db, event_type="CANCELLED", result="SUCCESS", booking=booking, requested_by=payload.requested_by)
     db.commit()
-    return MessageOut(message="The booking was cancelled.", booking=None)
+
+    message = (
+        "The prebooking was removed and the slot is now available."
+        if is_prebook
+        else "The booking was cancelled."
+    )
+    return MessageOut(message=message, booking=None)
 
 
 

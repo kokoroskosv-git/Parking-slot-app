@@ -119,6 +119,8 @@ function GuestDirectionsDialog({ prompt, onClose }) {
 function CancelConfirmDialog({ booking, onConfirm, onClose }) {
   if (!booking) return null;
 
+  const isPrebook = booking.booking_type === "prebook";
+
   return (
     <div className="modal-backdrop">
       <div className="modal-card">
@@ -126,20 +128,26 @@ function CancelConfirmDialog({ booking, onConfirm, onClose }) {
           <X size={18} />
         </button>
 
-        <h2>Cancel booking?</h2>
-        <p>Are you sure you want to remove this booking?</p>
+        <h2>{isPrebook ? "Remove prebooking?" : "Cancel booking?"}</h2>
+        <p>
+          {isPrebook
+            ? "This will release the CEO's default slot for the selected day. It will not be recreated automatically for that day."
+            : "Are you sure you want to remove this booking?"}
+        </p>
 
         <div className="directions-box">
           <div><strong>Slot:</strong> {booking.slot_code || "—"}</div>
           <div>
-            <strong>{booking.person_type === "guest" ? "Guest" : "Employee"}:</strong>{" "}
+            <strong>{isPrebook ? "Prebooked for" : booking.person_type === "guest" ? "Guest" : "Employee"}:</strong>{" "}
             {booking.person_name}
           </div>
-          <div><strong>Type:</strong> {booking.booking_type}</div>
+          <div><strong>Type:</strong> {isPrebook ? "Default prebooking" : booking.booking_type}</div>
         </div>
 
         <div className="modal-actions">
-          <button className="secondary" onClick={onClose}>Keep booking</button>
+          <button className="secondary" onClick={onClose}>
+            {isPrebook ? "Keep prebooking" : "Keep booking"}
+          </button>
           <button
             className="danger"
             onClick={() => {
@@ -147,7 +155,7 @@ function CancelConfirmDialog({ booking, onConfirm, onClose }) {
               onClose();
             }}
           >
-            <Trash2 size={16} /> Yes, remove
+            <Trash2 size={16} /> {isPrebook ? "Yes, release slot" : "Yes, remove"}
           </button>
         </div>
       </div>
@@ -298,7 +306,12 @@ function App() {
 
   async function cancelBooking(booking) {
     const requestedBy =
-      personName || (booking.person_type === "guest" ? "guest-removal" : booking.person_name);
+      personName ||
+      (booking.booking_type === "prebook"
+        ? "prebook-removal"
+        : booking.person_type === "guest"
+          ? "guest-removal"
+          : booking.person_name);
 
     try {
       const result = await api("/api/cancel", {
@@ -365,7 +378,7 @@ function App() {
               <EvoluteLogo className="evolute-logo" />
             </div>
 
-            <h1 className="hero-title">Internal Booking Too</h1>
+            <h1 className="hero-title">Internal Booking Tool</h1>
           </div>
         </div>
 
@@ -517,7 +530,8 @@ function App() {
                         slot.booking?.person_name?.toLowerCase() === personName.toLowerCase();
 
                       const isGuestBooking = slot.booking?.person_type === "guest";
-                      const canRemove = isOwn || isGuestBooking || personName === "admin";
+                      const isPrebook = slot.booking?.booking_type === "prebook";
+                      const canRemove = isPrebook || isOwn || isGuestBooking || personName === "admin";
 
                       return (
                         <div
@@ -532,11 +546,17 @@ function App() {
                           {slot.booking ? (
                             <>
                               <div className="booking-name">
-                                {slot.booking.person_type === "guest" ? "Book for" : "Booked by"}:{" "}
+                                {isPrebook
+                                  ? "Prebooked for"
+                                  : slot.booking.person_type === "guest"
+                                    ? "Book for"
+                                    : "Booked by"}:{" "}
                                 {slot.booking.person_name}
                               </div>
 
-                              <div className="booking-type">{slot.booking.booking_type}</div>
+                              <div className="booking-type">
+                                {isPrebook ? "Default prebooking" : slot.booking.booking_type}
+                              </div>
 
                               <button
                                 className="danger"
@@ -548,12 +568,14 @@ function App() {
                                   })
                                 }
                                 title={
-                                  isGuestBooking
-                                    ? "Guest bookings can be removed by anyone"
-                                    : "Only owner or admin can remove employee bookings"
+                                  isPrebook
+                                    ? "Release the default CEO prebooking for this day"
+                                    : isGuestBooking
+                                      ? "Guest bookings can be removed by anyone"
+                                      : "Only owner or admin can remove employee bookings"
                                 }
                               >
-                                <Trash2 size={15} /> Remove booking
+                                <Trash2 size={15} /> {isPrebook ? "Remove prebooking" : "Remove booking"}
                               </button>
                             </>
                           ) : (

@@ -9,6 +9,7 @@ This version combines the polished React booking UI with a FastAPI backend, pers
 3. Persistent bookings in `parking_bookings` using SQLite by default.
 4. REST API endpoints: `/api/slots`, `/api/availability`, `/api/book`, `/api/cancel`, `/api/history`.
 5. Power BI-friendly history table: `parking_booking_history`.
+6. EO-1 is prebooked for AthanasiouL by default, but the prebooking can be released for an individual day without being recreated automatically.
 
 ## Run backend
 
