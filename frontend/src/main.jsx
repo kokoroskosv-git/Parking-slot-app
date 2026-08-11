@@ -365,7 +365,7 @@ function App() {
               <EvoluteLogo className="evolute-logo" />
             </div>
 
-            <h1 className="hero-title">Internal Booking Tool</h1>
+            <h1 className="hero-title">Internal Booking Too</h1>
           </div>
         </div>
 
